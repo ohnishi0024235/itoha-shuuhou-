@@ -100,7 +100,9 @@ textarea.goal-text:focus{border-color:#ff85a2;}
 
 /* 日カード */
 .daily-label-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
-.daily-label{font-size:14px;font-weight:700;color:#c2185b;margin-bottom:0;}
+.daily-label{font-size:17.5px;font-weight:700;color:#c2185b;margin-bottom:0;}
+.goal-sec-title{font-size:17.5px;font-weight:700;color:#c2185b;margin-bottom:10px;}
+@media print{.goal-sec-title,.daily-label{font-size:17.5px!important;}}
 .day-card{border:1.5px solid #ffecef;border-radius:12px;margin-bottom:10px;overflow:hidden;}
 .day-header{display:flex;align-items:center;gap:10px;background:#fff8f9;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
 .day-header:hover{background:#fff0f3;}
@@ -138,6 +140,10 @@ textarea.field:focus{border-color:#ff85a2;}
 .result-num{width:100%;border:1.5px solid #ffcdd2;border-radius:8px;padding:7px 10px;font-size:15px;font-family:inherit;outline:none;background:#fff8f9;color:#333;text-align:right;}
 .result-num:focus{border-color:#ff85a2;}
 .result-unit{font-size:13px;color:#888;white-space:nowrap;}
+.sort-btns{display:flex;gap:4px;flex-shrink:0;}
+.sort-btn{background:#fff;border:1.5px solid #ffcdd2;border-radius:8px;padding:4px 10px;font-size:13px;cursor:pointer;color:#c2185b;line-height:1;}
+.sort-btn:hover{background:#fff0f3;}
+.week-card{transition:box-shadow 0.15s;}
 
 /* PDF オーバーレイ */
 .pdf-overlay{display:none;position:fixed;inset:0;background:rgba(255,133,162,0.95);z-index:9999;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;}
@@ -597,7 +603,6 @@ function startApp(){
   if(!n){alert('お名前を入力してね！');return;}
   if(!nick){alert('呼び名を入力してね！');return;}
   userName=n; nickname=nick; jobName=j||'お仕事';
-  // ★設定はここでは保存しない。「保存する」ボタンを押したときだけ保存する。
   document.getElementById('setup-modal').style.display='none';
   document.getElementById('main-app').style.display='block';
   document.getElementById('main-title').textContent=userName+'の週報';
@@ -624,44 +629,10 @@ function loadSettings(){
 }
 
 function initializeApp(){
-  // 原本として配布するため、常に初期設定モーダルを表示する。
-  // ユーザーが「保存する」を押した後、次回同じ端末で開いたときだけ
-  // localStorage から読み込む。
-  const savedKey = localStorage.getItem('weekly_report_v8');
-  const savedSettings = localStorage.getItem('weekly_report_settings');
-
-  if(savedKey && savedSettings){
-    // 保存済みデータがある端末 → 自動復元
-    try {
-      const settings = JSON.parse(savedSettings);
-      userName = settings.userName;
-      nickname = settings.nickname;
-      jobName  = settings.jobName || 'お仕事';
-
-      document.getElementById('setup-modal').style.display='none';
-      document.getElementById('main-app').style.display='block';
-      document.getElementById('main-title').textContent = userName+'の週報';
-      document.title = userName+'の週報';
-      setAiriMsg(jobPraise(jobName, nickname));
-
-      if(!appStarted){
-        setInterval(shuffleMsg, 20000);
-        appStarted = true;
-        setTimeout(()=>{
-          loadLocal();
-          const weeksEl = document.getElementById('weeks');
-          if(!weeksEl || weeksEl.children.length===0) addWeek();
-        }, 300);
-      }
-    } catch(e){
-      // 読み込み失敗 → モーダルを表示
-      document.getElementById('setup-modal').style.display='flex';
-    }
-  } else {
-    // 初めて開く端末（原本含む）→ モーダルを表示、何も読み込まない
-    document.getElementById('setup-modal').style.display='flex';
-    document.getElementById('main-app').style.display='none';
-  }
+  // 原本として配布するため、localStorageを一切読み込まない
+  // 常に空の状態・初期設定モーダルから始まる
+  document.getElementById('setup-modal').style.display='flex';
+  document.getElementById('main-app').style.display='none';
 }
 
 function openSettings(){
@@ -671,7 +642,68 @@ function openSettings(){
   document.getElementById('setup-modal').style.display='flex';
 }
 
-// カスタム追加モーダル
+// カテゴリ・媒体セレクトを生成する共通関数
+function buildCatOptions(selectedCat=''){
+  return `<option value="">選択</option>`+CATEGORIES.map(c=>`<option value="${c}"${selectedCat===c?' selected':''}>${c}</option>`).join('');
+}
+function buildPltOptions(cat, selectedPlt=''){
+  if(!cat) return `<option value="">媒体を選択</option>`;
+  return `<option value="">媒体を選択</option>`+(PLATFORMS[cat]||[]).map(p=>`<option value="${p}"${selectedPlt===p?' selected':''}>${p}</option>`).join('');
+}
+
+// 全セレクトを最新カテゴリ・媒体で更新（追加・削除後に呼ぶ）
+function syncAllSelects(){
+  // 目標行のカテゴリ
+  document.querySelectorAll('.goal-row').forEach(row=>{
+    const catSel=row.querySelector('.cat-sel');
+    const pltSel=row.querySelector('.plt-sel');
+    if(!catSel||!pltSel)return;
+    const curCat=catSel.value;
+    const curPlt=pltSel.value;
+    catSel.innerHTML=buildCatOptions(curCat);
+    if(curCat){
+      pltSel.innerHTML=buildPltOptions(curCat,curPlt);
+      pltSel.style.display='block';
+    } else {
+      pltSel.style.display='none';
+    }
+  });
+  // 予定アイテムのカテゴリ
+  document.querySelectorAll('.plan-item').forEach(pi=>{
+    const catSel=pi.querySelector('.cat-sel-p');
+    const pltSel=pi.querySelector('[id$="-plt"]');
+    if(!catSel||!pltSel)return;
+    const curCat=catSel.value;
+    const curPlt=pltSel.value;
+    catSel.innerHTML=`<option value="">カテゴリ</option>`+CATEGORIES.map(c=>`<option value="${c}"${curCat===c?' selected':''}>${c}</option>`).join('');
+    if(curCat){
+      pltSel.innerHTML=buildPltOptions(curCat,curPlt);
+      pltSel.style.display='block';
+    } else {
+      pltSel.style.display='none';
+    }
+  });
+  // カスタムモーダルのカテゴリも更新
+  const cmCatSel=document.getElementById('custom-platform-cat-sel');
+  if(cmCatSel) cmCatSel.innerHTML=CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const delCatSel=document.getElementById('delete-platform-cat-sel');
+  if(delCatSel){ delCatSel.innerHTML=CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join(''); updateDeleteList(); }
+}
+
+function buildGoalRowHTML(rowId,cardId){
+  return `
+    <button class="btn-remove-goal" onclick="document.getElementById('${rowId}').remove()" title="削除">×</button>
+    <div class="goal-row-filters">
+      <span class="filter-label">カテゴリ：</span>
+      <select class="f-sel cat-sel" onchange="updatePlatformSel(this,'${rowId}')">
+        ${buildCatOptions()}
+      </select>
+      <select class="f-sel plt-sel" style="display:none;"><option value="">媒体を選択</option></select>
+      <button class="btn-add-custom" onclick="openCustomModal(()=>syncAllSelects())">＋ 新規追加</button>
+      <button class="btn-add-custom" style="background:#fff5f5;color:#e57373;border-color:#e57373;" onclick="openDeleteModal()">項目削除</button>
+    </div>
+    <textarea class="goal-text" placeholder="目標・取り組みたいことを入力" oninput="autoH(this);onGoalType('${cardId}',this)"></textarea>`;
+}
 let customCB=null;
 function openCustomModal(cb){
   customCB=cb;
@@ -712,8 +744,7 @@ function saveCustomItem(){
     } else { alert('その媒体は既にあります'); return; }
   }
   closeCustomModal();
-  refreshAllGoalRows();
-  refreshAllPlanRows();
+  syncAllSelects();
   if(customCB) customCB();
 }
 
@@ -761,8 +792,7 @@ function executeDelete(){
     }
   }
   closeDeleteModal();
-  refreshAllGoalRows();
-  refreshAllPlanRows();
+  syncAllSelects();
 }
 
 function fmtDate(d){return d.toISOString().split('T')[0];}
@@ -799,7 +829,10 @@ function addWeek(){
 function buildWeekHTML(id,num,sv,ev){
   return `
     <div class="card-top">
-      <span class="week-badge">第 ${num} 週</span>
+      <div class="sort-btns">
+        <button class="sort-btn" onclick="moveWeek('${id}',-1)" title="上へ">▲</button>
+        <button class="sort-btn" onclick="moveWeek('${id}',1)" title="下へ">▼</button>
+      </div>
       <button class="del-week" onclick="deleteWeek('${id}')">🗑 この週を削除</button>
     </div>
     <div class="date-row">
@@ -851,6 +884,28 @@ function deleteWeek(id){
   if(!confirm('この週を削除しますか？'))return;
   const el=document.getElementById(id);
   if(el){el.remove(); setAiriMsg(nickname+'、いらないものを整理するのも大事な仕事！素敵な判断だよ🌸');}
+}
+
+// 週カードの順番入れ替え
+function moveWeek(id, direction){
+  const container=document.getElementById('weeks');
+  const card=document.getElementById(id);
+  if(!card||!container)return;
+  const cards=[...container.querySelectorAll(':scope > .week-card')];
+  const idx=cards.indexOf(card);
+  const targetIdx=idx+direction;
+  if(targetIdx<0||targetIdx>=cards.length)return;
+  // アニメーション
+  card.style.transition='opacity 0.15s';
+  card.style.opacity='0.5';
+  setTimeout(()=>{
+    if(direction===-1){
+      container.insertBefore(card, cards[targetIdx]);
+    } else {
+      cards[targetIdx].insertAdjacentElement('afterend', card);
+    }
+    card.style.opacity='1';
+  },120);
 }
 
 function addGoalRow(cid,cardId){
@@ -942,18 +997,15 @@ function addPlanItem(cid,dcId){
   const itemId=cid+'-item-'+Date.now();
   const d=document.createElement('div');
   d.className='plan-item'; d.id=itemId;
-  const catOpts=CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
-  const platOpts=PLATFORMS['その他']?PLATFORMS['その他'].map(p=>`<option value="${p}">${p}</option>`).join(''):'';
   d.innerHTML=`
     <div class="plan-item-head">
       <select class="plan-sel cat-sel-p" onchange="updatePlanPlt(this,'${itemId}')">
-        <option value="">カテゴリ</option>${catOpts}
+        <option value="">カテゴリ</option>${CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('')}
       </select>
       <select class="plan-sel plt-sel-p" style="display:none;" id="${itemId}-plt">
         <option value="">媒体</option>
-        <option value="その他">その他</option>${platOpts}
       </select>
-      <button class="btn-add-custom" onclick="openCustomModal(()=>refreshAllPlanRows())" style="font-size:11px;padding:5px 8px;">＋ 新規</button>
+      <button class="btn-add-custom" onclick="openCustomModal(()=>syncAllSelects())" style="font-size:11px;padding:5px 8px;">＋ 新規</button>
       <button class="btn-add-custom" style="font-size:11px;padding:5px 8px;background:#fff5f5;color:#e57373;border-color:#e57373;" onclick="openDeleteModal()">削除</button>
       <button class="btn-remove-plan" onclick="document.getElementById('${itemId}').remove()">×</button>
     </div>
@@ -967,7 +1019,7 @@ function updatePlanPlt(cs,itemId){
   if(!ps)return;
   const cat=cs.value;
   if(!cat){ps.style.display='none';return;}
-  ps.innerHTML=`<option value="">媒体</option><option value="その他">その他</option>`+(PLATFORMS[cat]||[]).map(p=>`<option value="${p}">${p}</option>`).join('');
+  ps.innerHTML=`<option value="">媒体</option>`+(PLATFORMS[cat]||[]).map(p=>`<option value="${p}">${p}</option>`).join('');
   ps.style.display='block';
 }
 function refreshAllPlanRows(){
@@ -1149,13 +1201,12 @@ async function generatePDF(){
 function escH(str){if(!str)return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function wait(ms){return new Promise(r=>setTimeout(r,ms));}
 
-// ── 保存（全入力を構造データとして保存）──
+// ── 保存（自分用コピーを作ってから使う機能）──
 function saveLocal(){
   try{
     const weeksEl=document.getElementById('weeks');
     if(!weeksEl){ setAiriMsg('保存に失敗しました。'); return; }
 
-    // 週データを構造化して保存
     const weeksData=[];
     weeksEl.querySelectorAll('.week-card').forEach(wEl=>{
       const wid=wEl.id;
@@ -1168,7 +1219,6 @@ function saveLocal(){
       const rA=wEl.querySelector('[id$="-r-apply"]')?.value||'';
       const rS=wEl.querySelector('[id$="-r-sales"]')?.value||'';
 
-      // 目標行
       const goals=[];
       wEl.querySelectorAll('.goal-row').forEach(gr=>{
         const cat=gr.querySelector('.cat-sel')?.value||'';
@@ -1177,7 +1227,6 @@ function saveLocal(){
         goals.push({cat,plt,txt});
       });
 
-      // 日カード
       const days=[];
       wEl.querySelectorAll('.day-card').forEach(dc=>{
         const dcId=dc.querySelector('.day-body')?.id?.replace('-body','')||'';
@@ -1207,7 +1256,6 @@ function saveLocal(){
       savedAt:new Date().toISOString()
     };
     localStorage.setItem('weekly_report_v8',JSON.stringify(data));
-    // 設定も同時に保存
     localStorage.setItem('weekly_report_settings',JSON.stringify({userName,nickname,jobName}));
     setAiriMsg('保存したよ！次に開いたときも続きから入力できるよ🌸');
   } catch(e){
@@ -1348,7 +1396,12 @@ document.getElementById('nickname-input').addEventListener('keydown',e=>{if(e.ke
 document.getElementById('job-input').addEventListener('keydown',e=>{if(e.key==='Enter')startApp();});
 
 window.addEventListener('load',()=>{
-  setTimeout(initializeApp,100);
+  // 原本：起動時にlocalStorageを完全にクリアして、必ず空の状態で始める
+  localStorage.removeItem('weekly_report_v8');
+  localStorage.removeItem('weekly_report_settings');
+  // 常に空のモーダルを表示
+  document.getElementById('setup-modal').style.display='flex';
+  document.getElementById('main-app').style.display='none';
 });
 </script>
 </body>
