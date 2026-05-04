@@ -152,34 +152,36 @@ textarea.field:focus{border-color:#ff85a2;}
 @keyframes rotation{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
 /* PDF 生成用隠しエリア */
-#pdf-print-area{position:absolute;left:-9999px;top:0;width:794px;}
-.pdf-page{width:794px;background:#fff;padding:40px;color:#333;position:relative;margin-bottom:20px;box-sizing:border-box;}
-.pdf-doc-title{text-align:center;border-bottom:3px solid #ff85a2;padding-bottom:15px;margin-bottom:20px;}
-.pdf-doc-title h2{color:#c2185b;font-size:28px;margin-bottom:8px;}
-.pdf-doc-meta{text-align:center;font-size:12px;color:#aaa;margin-bottom:20px;}
-.pdf-week-header{background:#fff0f3;padding:10px 15px;border-radius:8px;margin-bottom:15px;}
-.pdf-week-header h3{color:#c2185b;font-size:18px;}
-.pdf-section-title{font-size:15px;font-weight:700;color:#c2185b;margin:20px 0 10px;border-left:4px solid #ff85a2;padding-left:10px;}
-.pdf-goal-item{margin-bottom:10px;padding-left:14px;}
-.pdf-goal-tag{font-size:11px;font-weight:700;color:#ff85a2;margin-bottom:2px;}
-.pdf-goal-text{font-size:13px;line-height:1.6;}
-.pdf-day-block{border:1px solid #ffecef;border-radius:10px;margin-bottom:12px;overflow:hidden;}
-.pdf-day-name{background:#fff8f9;padding:8px 12px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+#pdf-print-area{position:fixed;left:-9999px;top:0;width:794px;font-family:'Noto Sans JP',sans-serif;background:#fff;z-index:-1;}
+.pdf-page{width:794px;min-height:1123px;background:#fff;padding:48px 52px;color:#333;position:relative;box-sizing:border-box;font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.pdf-doc-title{text-align:center;border-bottom:3px solid #ff85a2;padding-bottom:16px;margin-bottom:16px;}
+.pdf-doc-title h2{color:#c2185b;font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:0.5px;}
+.pdf-doc-meta{text-align:center;font-size:11px;color:#aaa;margin-bottom:16px;}
+.pdf-week-header{background:#ff85a2;border-radius:8px;padding:8px 16px;margin-bottom:16px;}
+.pdf-week-header h3{color:#fff;font-size:14px;font-weight:700;}
+.pdf-section-title{font-size:13px;font-weight:700;color:#c2185b;margin:16px 0 8px;border-left:4px solid #ff85a2;padding-left:10px;}
+.pdf-goal-item{margin-bottom:8px;padding:8px 12px;background:#fff8f9;border-radius:6px;border:1px solid #ffecef;}
+.pdf-goal-tag{font-size:10px;font-weight:700;color:#ff85a2;margin-bottom:3px;}
+.pdf-goal-text{font-size:12px;line-height:1.7;color:#333;white-space:pre-wrap;word-break:break-all;}
+.pdf-day-block{border:1px solid #ffecef;border-radius:8px;margin-bottom:8px;overflow:hidden;}
+.pdf-day-name{background:#fff8f9;padding:7px 12px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
 .pdf-day-name.weekend{color:#c2185b;}
-.pdf-day-ach{font-size:11px;color:#888;}
-.pdf-day-content{padding:10px 12px;}
-.pdf-plan-row{display:flex;gap:8px;margin-bottom:6px;font-size:12px;line-height:1.5;}
-.pdf-plan-tag{color:#ff85a2;font-weight:700;white-space:nowrap;}
-.pdf-note-row{margin-top:10px;padding-top:8px;border-top:1px dashed #eee;}
-.pdf-note-label{font-size:11px;font-weight:700;color:#c2185b;margin-bottom:4px;}
-.pdf-note-text{font-size:12px;line-height:1.5;color:#555;}
-.pdf-review-box{background:#fdfdfd;border:1px solid #eee;border-radius:8px;padding:12px;font-size:13px;line-height:1.7;color:#333;}
-.pdf-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
-.pdf-result-cell{background:#fff8f9;padding:8px;border-radius:6px;text-align:center;}
-.pdf-result-cell-label{font-size:10px;color:#c2185b;margin-bottom:4px;}
-.pdf-result-cell-val{font-size:13px;font-weight:700;}
-.pdf-page-num{position:absolute;bottom:20px;right:40px;font-size:12px;color:#ccc;}
-.pdf-no-record{font-size:11px;color:#bbb;font-style:italic;}
+.pdf-day-ach{font-size:10px;color:#888;font-weight:400;}
+.pdf-day-content{padding:8px 12px;}
+.pdf-plan-row{margin-bottom:5px;font-size:11.5px;line-height:1.6;}
+.pdf-plan-tag{display:inline-block;color:#ff85a2;font-weight:700;margin-right:6px;white-space:nowrap;}
+.pdf-plan-text{display:inline;color:#333;white-space:pre-wrap;word-break:break-all;}
+.pdf-note-row{margin-top:6px;padding-top:6px;border-top:1px dashed #eee;}
+.pdf-note-label{font-size:10px;font-weight:700;color:#c2185b;margin-bottom:3px;}
+.pdf-note-text{font-size:11px;line-height:1.6;color:#555;white-space:pre-wrap;word-break:break-all;}
+.pdf-review-box{background:#fdfdfd;border:1px solid #eee;border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.8;color:#333;white-space:pre-wrap;word-break:break-all;}
+.pdf-result-box{background:#fff8f9;border:1px solid #ffecef;border-radius:6px;padding:10px 12px;}
+.pdf-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+.pdf-result-cell{background:#fff;padding:8px 6px;border-radius:6px;text-align:center;border:1px solid #ffecef;}
+.pdf-result-cell-label{font-size:10px;color:#c2185b;font-weight:700;margin-bottom:4px;}
+.pdf-result-cell-val{font-size:13px;font-weight:700;color:#333;}
+.pdf-page-num{position:absolute;bottom:24px;right:52px;font-size:10px;color:#ccc;}
+.pdf-no-record{font-size:11px;color:#bbb;}
 
 @media (max-width: 480px) {
   .btn-row{flex-direction:column;}
@@ -1165,14 +1167,31 @@ async function buildPDFBlob(overlayText) {
   await wait(300);
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const A4_W_MM=210, A4_H_MM=297;
   const pages=area.querySelectorAll('.pdf-page');
   for(let i=0;i<pages.length;i++){
     if(overlayText) overlayText.textContent=`ページ ${i+1} / ${pages.length} を変換中...`;
-    const canvas=await html2canvas(pages[i],{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,width:794,windowWidth:794});
-    const imgData=canvas.toDataURL('image/jpeg',0.92);
+    // scale:2でRetina品質、windowWidthを794pxに固定して横伸びを防止
+    const canvas=await html2canvas(pages[i],{
+      scale:2,
+      useCORS:true,
+      backgroundColor:'#ffffff',
+      logging:false,
+      width:794,
+      height:1123,
+      windowWidth:794,
+      windowHeight:1123,
+      scrollX:0,
+      scrollY:0
+    });
+    const imgData=canvas.toDataURL('image/png');
     if(i>0) pdf.addPage();
-    const imgW=210; const imgH=canvas.height*imgW/canvas.width;
-    pdf.addImage(imgData,'JPEG',0,0,imgW,Math.min(imgH,297));
+    // A4ぴったりに収める（縦横比維持）
+    const canvasW=canvas.width/2; // scaleで2倍になっているので戻す
+    const canvasH=canvas.height/2;
+    const ratio=A4_W_MM/794; // 794px = 210mm
+    const imgH=canvasH*ratio;
+    pdf.addImage(imgData,'PNG',0,0,A4_W_MM,Math.min(imgH,A4_H_MM));
   }
   area.innerHTML='';
   return pdf.output('blob');
